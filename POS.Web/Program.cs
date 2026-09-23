@@ -20,6 +20,12 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddHttpClient("PaymentApi", client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["PaymentApi:BaseUrl"]!);
+});
+
 
 var app = builder.Build();
 

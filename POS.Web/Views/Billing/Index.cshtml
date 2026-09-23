@@ -76,6 +76,7 @@
                                         </td>
 
                                         <td>
+
                                             @if (product.StockQuantity <= product.LowStockThreshold)
                                             {
                                                 <span class="badge bg-danger">
@@ -88,6 +89,7 @@
                                                     @product.StockQuantity
                                                 </span>
                                             }
+
                                         </td>
 
                                         <td>
@@ -132,7 +134,6 @@
 
 
         <!-- RIGHT SIDE - CART -->
-
         <div class="col-md-5">
 
             <div class="card shadow-sm">
@@ -277,12 +278,69 @@
                     <!-- Complete Sale -->
 
                     <button type="button"
+                            id="completeSaleButton"
                             class="btn btn-success btn-lg w-100 mt-3"
                             onclick="completeSale()">
 
                         Complete Sale
 
                     </button>
+
+
+                    <!-- PAYMENT SECTION -->
+
+                    <div id="paymentSection"
+                         class="border rounded p-3 mt-3"
+                         style="display:none;">
+
+                        <h5 class="mb-3">
+                            Payment
+                        </h5>
+
+                        <div class="mb-2">
+                            <strong>Order Number:</strong>
+                            <span id="paymentOrderNumber"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Amount:</strong>
+                            <span id="paymentAmount"></span>
+                        </div>
+
+                        <div class="alert alert-warning mb-3"
+                             id="paymentStatus">
+                            Payment Pending
+                        </div>
+
+                        <div class="row g-2">
+
+                            <div class="col-6">
+
+                                <button type="button"
+                                        class="btn btn-success w-100"
+                                        onclick="simulatePayment('success')">
+
+                                    Successful Payment
+
+                                </button>
+
+                            </div>
+
+                            <div class="col-6">
+
+                                <button type="button"
+                                        class="btn btn-danger w-100"
+                                        onclick="simulatePayment('failed')">
+
+                                    Failed Payment
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -301,15 +359,22 @@
 
         let cart = [];
 
+        let currentOrderNumber = "";
+        let currentOrderAmount = 0;
+
+
         // Add product to cart
         function addToCart(productId, productName, sku, price, stock) {
 
-            let existingProduct = cart.find(x => x.productId === productId);
+            let existingProduct =
+                cart.find(x => x.productId === productId);
 
             if (existingProduct) {
 
                 if (existingProduct.quantity >= stock) {
+
                     alert("Cannot add more than available stock.");
+
                     return;
                 }
 
@@ -335,13 +400,16 @@
         // Increase quantity
         function increaseQuantity(productId) {
 
-            let item = cart.find(x => x.productId === productId);
+            let item =
+                cart.find(x => x.productId === productId);
 
             if (!item)
                 return;
 
             if (item.quantity >= item.stock) {
+
                 alert("Available stock limit reached.");
+
                 return;
             }
 
@@ -354,7 +422,8 @@
         // Decrease quantity
         function decreaseQuantity(productId) {
 
-            let item = cart.find(x => x.productId === productId);
+            let item =
+                cart.find(x => x.productId === productId);
 
             if (!item)
                 return;
@@ -363,7 +432,8 @@
 
             if (item.quantity <= 0) {
 
-                cart = cart.filter(x => x.productId !== productId);
+                cart =
+                    cart.filter(x => x.productId !== productId);
 
             }
 
@@ -374,7 +444,8 @@
         // Remove product
         function removeFromCart(productId) {
 
-            cart = cart.filter(x => x.productId !== productId);
+            cart =
+                cart.filter(x => x.productId !== productId);
 
             renderCart();
         }
@@ -383,7 +454,8 @@
         // Render cart
         function renderCart() {
 
-            let cartBody = document.getElementById("cartBody");
+            let cartBody =
+                document.getElementById("cartBody");
 
             cartBody.innerHTML = "";
 
@@ -473,7 +545,8 @@
 
             cart.forEach(item => {
 
-                subtotal += item.quantity * item.unitPrice;
+                subtotal +=
+                    item.quantity * item.unitPrice;
 
             });
 
@@ -543,9 +616,12 @@
         async function completeSale() {
 
             if (cart.length === 0) {
+
                 alert("Please add at least one product.");
+
                 return;
             }
+
 
             let discountType =
                 document.getElementById("discountType").value;
@@ -555,44 +631,78 @@
                     document.getElementById("discountValue").value
                 ) || 0;
 
-            let request = {
-                discountType: discountType || null,
-                discountValue: discountValue,
 
-                items: cart.map(item => ({
-                    productId: item.productId,
-                    productName: item.productName,
-                    sku: item.sku,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice
-                }))
+            let request = {
+
+                discountType:
+                    discountType || null,
+
+                discountValue:
+                    discountValue,
+
+                items:
+                    cart.map(item => ({
+
+                        productId:
+                            item.productId,
+
+                        productName:
+                            item.productName,
+
+                        sku:
+                            item.sku,
+
+                        quantity:
+                            item.quantity,
+
+                        unitPrice:
+                            item.unitPrice
+
+                    }))
+
             };
 
-            console.log("Order Request:", request);
+
+            console.log(
+                "Order Request:",
+                request
+            );
+
 
             try {
 
-                let response = await fetch(
-                    '@Url.Action("CreateOrder", "Billing")',
-                    {
-                        method: "POST",
+                let response =
+                    await fetch(
+                        '@Url.Action("CreateOrder", "Billing")',
+                        {
+                            method: "POST",
 
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
-                        body: JSON.stringify(request)
-                    }
+                            body:
+                                JSON.stringify(request)
+                        }
+                    );
+
+
+                console.log(
+                    "Response Status:",
+                    response.status
                 );
 
-                console.log("Response Status:", response.status);
 
-                // Check server error
                 if (!response.ok) {
 
-                    let errorText = await response.text();
+                    let errorText =
+                        await response.text();
 
-                    console.error("Server Error:", errorText);
+                    console.error(
+                        "Server Error:",
+                        errorText
+                    );
 
                     alert(
                         "Server Error (" +
@@ -604,40 +714,259 @@
                     return;
                 }
 
-                let result = await response.json();
 
-                console.log("Order Response:", result);
+                let result =
+                    await response.json();
+
+
+                console.log(
+                    "Order Response:",
+                    result
+                );
+
 
                 if (!result.success) {
 
-                    alert(result.message);
+                    alert(
+                        result.message
+                    );
 
                     return;
                 }
 
-                alert(
-                    "Order created successfully!\n\n" +
-                    result.message
-                );
+
+                /*
+                 * Order created successfully.
+                 * Keep the order number and amount
+                 * for payment processing.
+                 */
+
+                currentOrderNumber =
+                    result.data.orderNumber;
+
+                currentOrderAmount =
+                    parseFloat(
+                        result.data.grandTotal
+                    );
+
+
+                /*
+                 * Show payment section.
+                 */
+
+                document.getElementById(
+                    "paymentSection"
+                ).style.display = "block";
+
+
+                document.getElementById(
+                    "paymentOrderNumber"
+                ).innerText =
+                    currentOrderNumber;
+
+
+                document.getElementById(
+                    "paymentAmount"
+                ).innerText =
+                    "₹ " +
+                    currentOrderAmount.toFixed(2);
+
+
+                document.getElementById(
+                    "paymentStatus"
+                ).innerText =
+                    "Payment Pending";
+
+
+                document.getElementById(
+                    "paymentStatus"
+                ).className =
+                    "alert alert-warning mb-3";
+
+
+                /*
+                 * Clear cart after order creation.
+                 * The order is already stored in database.
+                 */
 
                 cart = [];
 
-                document.getElementById("discountValue").value = 0;
+                document.getElementById(
+                    "discountValue"
+                ).value = 0;
 
-                document.getElementById("discountType").value = "";
+                document.getElementById(
+                    "discountType"
+                ).value = "";
 
                 renderCart();
+
+
+                document.getElementById(
+                    "completeSaleButton"
+                ).disabled = true;
 
             }
             catch (error) {
 
-                console.error("JavaScript Error:", error);
+                console.error(
+                    "JavaScript Error:",
+                    error
+                );
 
                 alert(
                     "Request failed.\n\n" +
                     error.message
                 );
+
             }
+
+        }
+
+
+        // Simulate payment through POS.API
+        async function simulatePayment(status) {
+
+            if (!currentOrderNumber) {
+
+                alert(
+                    "No pending order found."
+                );
+
+                return;
+            }
+
+
+            let paymentStatus =
+                document.getElementById(
+                    "paymentStatus"
+                );
+
+
+            paymentStatus.innerText =
+                "Processing payment...";
+
+            paymentStatus.className =
+                "alert alert-info mb-3";
+
+
+            try {
+
+                let response =
+                    await fetch(
+                        '@Url.Action("SimulatePayment", "Billing")',
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded"
+                            },
+
+                            body:
+                                new URLSearchParams({
+
+                                    orderNumber:
+                                        currentOrderNumber,
+
+                                    amount:
+                                        currentOrderAmount,
+
+                                    status:
+                                        status
+
+                                })
+
+                        }
+                    );
+
+
+                let result =
+                    await response.json();
+
+
+                console.log(
+                    "Payment Response:",
+                    result
+                );
+
+
+                if (!result.success) {
+
+                    paymentStatus.innerText =
+                        result.message ||
+                        "Payment processing failed.";
+
+                    paymentStatus.className =
+                        "alert alert-danger mb-3";
+
+                    return;
+                }
+
+
+                if (status === "success") {
+
+        paymentStatus.innerText =
+            "Payment Successful";
+
+        paymentStatus.className =
+            "alert alert-success mb-3";
+
+        let successMessage =
+            result.message &&
+            result.message.trim() !== ""
+                ? result.message
+                : "Payment successful. Order marked as paid and inventory updated.";
+
+        alert(successMessage);
+
+        setTimeout(
+            function () {
+                window.location.reload();
+            },
+            1000
+        );
+
+                }
+                else {
+
+        paymentStatus.innerText =
+            "Payment Failed";
+
+        paymentStatus.className =
+            "alert alert-danger mb-3";
+
+        let failedMessage =
+            result.message &&
+            result.message.trim() !== ""
+                ? result.message
+                : "Payment failed. Inventory was not reduced.";
+
+        alert(failedMessage);
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Payment Error:",
+                    error
+                );
+
+                paymentStatus.innerText =
+                    "Payment request failed.";
+
+                paymentStatus.className =
+                    "alert alert-danger mb-3";
+
+                alert(
+                    "Payment request failed.\n\n" +
+                    error.message
+                );
+
+            }
+
         }
 
 
