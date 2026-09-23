@@ -1,0 +1,649 @@
+﻿@model IEnumerable<POS.Models.Entities.Product>
+
+@{
+    ViewData["Title"] = "POS Billing";
+}
+
+<div class="container-fluid mt-3">
+
+    <div class="row">
+
+        <!-- LEFT SIDE - PRODUCTS -->
+        <div class="col-md-7">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">POS Billing</h4>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Search -->
+                    <form asp-action="Index" method="get" class="row mb-3">
+
+                        <div class="col-md-9">
+                            <input type="text"
+                                   name="search"
+                                   value="@ViewBag.Search"
+                                   class="form-control"
+                                   placeholder="Search product by name or SKU..." />
+                        </div>
+
+                        <div class="col-md-3">
+                            <button type="submit"
+                                    class="btn btn-primary w-100">
+                                Search
+                            </button>
+                        </div>
+
+                    </form>
+
+                    <!-- Product Table -->
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered table-hover">
+
+                            <thead class="table-dark">
+
+                                <tr>
+                                    <th>Name</th>
+                                    <th>SKU</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Action</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @foreach (var product in Model)
+                                {
+                                    <tr>
+
+                                        <td>
+                                            @product.Name
+                                        </td>
+
+                                        <td>
+                                            @product.SKU
+                                        </td>
+
+                                        <td>
+                                            ₹ @product.Price.ToString("0.00")
+                                        </td>
+
+                                        <td>
+                                            @if (product.StockQuantity <= product.LowStockThreshold)
+                                            {
+                                                <span class="badge bg-danger">
+                                                    @product.StockQuantity
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">
+                                                    @product.StockQuantity
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <td>
+
+                                            @if (product.StockQuantity > 0)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-success"
+                                                        onclick="addToCart(
+                                                                    @product.ProductId,
+                                                                    '@Html.Raw(product.Name.Replace("'", "\\'"))',
+                                                                    '@Html.Raw(product.SKU.Replace("'", "\\'"))',
+                                                                    @product.Price,
+                                                                    @product.StockQuantity)">
+                                                    Add
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-secondary"
+                                                        disabled>
+                                                    Out of Stock
+                                                </button>
+                                            }
+
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT SIDE - CART -->
+
+        <div class="col-md-5">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-dark text-white">
+
+                    <h4 class="mb-0">
+                        Cart
+                    </h4>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered">
+
+                            <thead>
+
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th width="130">Qty</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="cartBody">
+
+                                <tr>
+                                    <td colspan="5"
+                                        class="text-center text-muted">
+
+                                        Cart is empty
+
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <!-- Discount -->
+
+                    <hr />
+
+                    <div class="row mb-2">
+
+                        <div class="col-6">
+
+                            <label class="form-label">
+                                Discount Type
+                            </label>
+
+                            <select id="discountType"
+                                    class="form-select"
+                                    onchange="calculateTotal()">
+
+                                <option value="">
+                                    No Discount
+                                </option>
+
+                                <option value="Percentage">
+                                    Percentage (%)
+                                </option>
+
+                                <option value="Fixed">
+                                    Fixed Amount
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-6">
+
+                            <label class="form-label">
+                                Discount Value
+                            </label>
+
+                            <input type="number"
+                                   id="discountValue"
+                                   class="form-control"
+                                   value="0"
+                                   min="0"
+                                   step="0.01"
+                                   oninput="calculateTotal()" />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Totals -->
+
+                    <div class="border-top pt-3">
+
+                        <div class="d-flex justify-content-between">
+                            <strong>Subtotal:</strong>
+                            <span id="subtotal">
+                                ₹ 0.00
+                            </span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <strong>Discount:</strong>
+                            <span id="discountAmount">
+                                ₹ 0.00
+                            </span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <strong>GST:</strong>
+                            <span id="gstAmount">
+                                ₹ 0.00
+                            </span>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+
+                            <h4>
+                                Grand Total:
+                            </h4>
+
+                            <h4 id="grandTotal">
+                                ₹ 0.00
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Complete Sale -->
+
+                    <button type="button"
+                            class="btn btn-success btn-lg w-100 mt-3"
+                            onclick="completeSale()">
+
+                        Complete Sale
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        let cart = [];
+
+        // Add product to cart
+        function addToCart(productId, productName, sku, price, stock) {
+
+            let existingProduct = cart.find(x => x.productId === productId);
+
+            if (existingProduct) {
+
+                if (existingProduct.quantity >= stock) {
+                    alert("Cannot add more than available stock.");
+                    return;
+                }
+
+                existingProduct.quantity++;
+            }
+            else {
+
+                cart.push({
+                    productId: productId,
+                    productName: productName,
+                    sku: sku,
+                    unitPrice: price,
+                    quantity: 1,
+                    stock: stock
+                });
+
+            }
+
+            renderCart();
+        }
+
+
+        // Increase quantity
+        function increaseQuantity(productId) {
+
+            let item = cart.find(x => x.productId === productId);
+
+            if (!item)
+                return;
+
+            if (item.quantity >= item.stock) {
+                alert("Available stock limit reached.");
+                return;
+            }
+
+            item.quantity++;
+
+            renderCart();
+        }
+
+
+        // Decrease quantity
+        function decreaseQuantity(productId) {
+
+            let item = cart.find(x => x.productId === productId);
+
+            if (!item)
+                return;
+
+            item.quantity--;
+
+            if (item.quantity <= 0) {
+
+                cart = cart.filter(x => x.productId !== productId);
+
+            }
+
+            renderCart();
+        }
+
+
+        // Remove product
+        function removeFromCart(productId) {
+
+            cart = cart.filter(x => x.productId !== productId);
+
+            renderCart();
+        }
+
+
+        // Render cart
+        function renderCart() {
+
+            let cartBody = document.getElementById("cartBody");
+
+            cartBody.innerHTML = "";
+
+            if (cart.length === 0) {
+
+                cartBody.innerHTML = `
+                    <tr>
+                        <td colspan="5"
+                            class="text-center text-muted">
+                            Cart is empty
+                        </td>
+                    </tr>
+                `;
+
+                calculateTotal();
+
+                return;
+            }
+
+
+            cart.forEach(item => {
+
+                let row = `
+                    <tr>
+
+                        <td>
+                            <strong>${item.productName}</strong>
+                            <br />
+                            <small>${item.sku}</small>
+                        </td>
+
+                        <td>
+                            ₹ ${item.unitPrice.toFixed(2)}
+                        </td>
+
+                        <td>
+
+                            <div class="btn-group">
+
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="decreaseQuantity(${item.productId})">
+                                    -
+                                </button>
+
+                                <button class="btn btn-sm btn-light"
+                                        disabled>
+                                    ${item.quantity}
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="increaseQuantity(${item.productId})">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+                            ₹ ${(item.quantity * item.unitPrice).toFixed(2)}
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-sm btn-danger"
+                                    onclick="removeFromCart(${item.productId})">
+                                ×
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+
+                cartBody.innerHTML += row;
+
+            });
+
+            calculateTotal();
+        }
+
+
+        // Calculate totals
+        function calculateTotal() {
+
+            let subtotal = 0;
+
+            cart.forEach(item => {
+
+                subtotal += item.quantity * item.unitPrice;
+
+            });
+
+
+            let discountType =
+                document.getElementById("discountType").value;
+
+            let discountValue =
+                parseFloat(
+                    document.getElementById("discountValue").value
+                ) || 0;
+
+
+            let discountAmount = 0;
+
+
+            if (discountType === "Percentage") {
+
+                discountAmount =
+                    subtotal * discountValue / 100;
+
+            }
+            else if (discountType === "Fixed") {
+
+                discountAmount = discountValue;
+
+            }
+
+
+            if (discountAmount > subtotal) {
+
+                discountAmount = subtotal;
+
+            }
+
+
+            let taxableAmount =
+                subtotal - discountAmount;
+
+
+            // GST = 18%
+            let gstPercentage = 18;
+
+            let gstAmount =
+                taxableAmount * gstPercentage / 100;
+
+
+            let grandTotal =
+                taxableAmount + gstAmount;
+
+
+            document.getElementById("subtotal").innerText =
+                "₹ " + subtotal.toFixed(2);
+
+            document.getElementById("discountAmount").innerText =
+                "₹ " + discountAmount.toFixed(2);
+
+            document.getElementById("gstAmount").innerText =
+                "₹ " + gstAmount.toFixed(2);
+
+            document.getElementById("grandTotal").innerText =
+                "₹ " + grandTotal.toFixed(2);
+        }
+
+
+        // Complete sale
+        async function completeSale() {
+
+            if (cart.length === 0) {
+                alert("Please add at least one product.");
+                return;
+            }
+
+            let discountType =
+                document.getElementById("discountType").value;
+
+            let discountValue =
+                parseFloat(
+                    document.getElementById("discountValue").value
+                ) || 0;
+
+            let request = {
+                discountType: discountType || null,
+                discountValue: discountValue,
+
+                items: cart.map(item => ({
+                    productId: item.productId,
+                    productName: item.productName,
+                    sku: item.sku,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice
+                }))
+            };
+
+            console.log("Order Request:", request);
+
+            try {
+
+                let response = await fetch(
+                    '@Url.Action("CreateOrder", "Billing")',
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(request)
+                    }
+                );
+
+                console.log("Response Status:", response.status);
+
+                // Check server error
+                if (!response.ok) {
+
+                    let errorText = await response.text();
+
+                    console.error("Server Error:", errorText);
+
+                    alert(
+                        "Server Error (" +
+                        response.status +
+                        ")\n\n" +
+                        errorText.substring(0, 1000)
+                    );
+
+                    return;
+                }
+
+                let result = await response.json();
+
+                console.log("Order Response:", result);
+
+                if (!result.success) {
+
+                    alert(result.message);
+
+                    return;
+                }
+
+                alert(
+                    "Order created successfully!\n\n" +
+                    result.message
+                );
+
+                cart = [];
+
+                document.getElementById("discountValue").value = 0;
+
+                document.getElementById("discountType").value = "";
+
+                renderCart();
+
+            }
+            catch (error) {
+
+                console.error("JavaScript Error:", error);
+
+                alert(
+                    "Request failed.\n\n" +
+                    error.message
+                );
+            }
+        }
+
+
+        // Initial calculation
+        calculateTotal();
+
+    </script>
+
+}

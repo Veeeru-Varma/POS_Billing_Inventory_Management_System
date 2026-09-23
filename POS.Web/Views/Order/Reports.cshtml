@@ -1,0 +1,171 @@
+﻿@{
+    ViewData["Title"] = "Sales Report";
+
+    var selectedDate = (DateTime)ViewBag.SelectedDate;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="mb-1">Daily Sales Report</h2>
+
+        <p class="text-muted mb-0">
+            View daily sales summary.
+        </p>
+    </div>
+
+    <a asp-controller="Order"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Order History
+    </a>
+
+</div>
+
+
+<!-- Report Filter -->
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <form method="get"
+              asp-controller="Order"
+              asp-action="Reports"
+              class="row g-3 align-items-end">
+
+            <!-- Sale Date -->
+            <div class="col-md-4">
+
+                <label class="form-label">
+                    Sale Date
+                </label>
+
+                <input type="date"
+                       name="date"
+                       value="@selectedDate.ToString("yyyy-MM-dd")"
+                       class="form-control" />
+
+            </div>
+
+
+            <!-- View Report -->
+            <div class="col-md-2">
+
+                <button type="submit"
+                        class="btn btn-primary w-100">
+                    View Report
+                </button>
+
+            </div>
+
+
+            <!-- Export CSV -->
+            <div class="col-md-2">
+
+                <a asp-controller="Order"
+                   asp-action="ExportCsv"
+                   asp-route-date="@selectedDate.ToString("yyyy-MM-dd")"
+                   class="btn btn-success w-100">
+                    Export CSV
+                </a>
+
+            </div>
+
+
+            <!-- Export PDF -->
+            <div class="col-md-2">
+
+                <a asp-controller="Order"
+                   asp-action="ExportPdf"
+                   asp-route-date="@selectedDate.ToString("yyyy-MM-dd")"
+                   class="btn btn-danger w-100">
+                    Export PDF
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- Sales Summary -->
+@if (Model == null)
+{
+    <div class="alert alert-info">
+        No sales data found for the selected date.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+
+        <!-- Total Orders -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Orders
+                    </h6>
+
+                    <h2 class="mb-0">
+                        @Model.TotalOrders
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Total Revenue -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Revenue
+                    </h6>
+
+                    <h2 class="mb-0">
+                        ₹ @Model.TotalRevenue.ToString("N2")
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Total Discount -->
+        <div class="col-md-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h6 class="text-muted">
+                        Total Discount
+                    </h6>
+
+                    <h2 class="mb-0">
+                        ₹ @Model.TotalDiscount.ToString("N2")
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}

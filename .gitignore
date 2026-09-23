@@ -1,0 +1,31 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.slnLaunch.user
+
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+
+# Logs
+*.log
+
+# Test results
+TestResults/
+
+# Publish output
+publish/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Generated BackgroundService reports
+Reports/

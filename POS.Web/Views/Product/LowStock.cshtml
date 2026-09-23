@@ -1,0 +1,79 @@
+﻿@model IEnumerable<POS.Models.Entities.Product>
+
+@{
+    ViewData["Title"] = "Low Stock Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Low Stock Report</h2>
+        <p class="text-muted mb-0">
+            Products that have reached or fallen below their stock threshold.
+        </p>
+    </div>
+
+    <a asp-controller="Product"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Back to Products
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-success mb-0">
+                No low-stock products found.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Low Stock Threshold</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var product in Model)
+                        {
+                            <tr>
+                                <td>@product.Name</td>
+                                <td>@product.SKU</td>
+                                <td>@product.Category</td>
+                                <td>
+                                    <strong>@product.StockQuantity</strong>
+                                </td>
+                                <td>@product.LowStockThreshold</td>
+                                <td>
+                                    @if (product.StockQuantity == 0)
+                                    {
+                                        <span class="badge bg-danger">
+                                            Out of Stock
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Low Stock
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+</div>

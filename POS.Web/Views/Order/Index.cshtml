@@ -1,0 +1,273 @@
+﻿@model IEnumerable<POS.Models.Entities.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Order History</h2>
+            <p class="text-muted mb-0">
+                View and filter completed and pending orders.
+            </p>
+        </div>
+
+        <a asp-controller="Billing"
+           asp-action="Index"
+           class="btn btn-primary">
+            New Sale
+        </a>
+    </div>
+
+    <!-- FILTER -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>Search Orders</strong>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            From Date
+                        </label>
+
+                        <input type="date"
+                               name="fromDate"
+                               value="@(ViewBag.FromDate != null
+                                                                   ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd")
+                                                                   : "")"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            To Date
+                        </label>
+
+                        <input type="date"
+                               name="toDate"
+                               value="@(ViewBag.ToDate != null
+                                                                   ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd")
+                                                                   : "")"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Payment Status
+                        </label>
+
+                        <select name="paymentStatus"
+                                class="form-select">
+
+                            <option value="">
+                                All
+                            </option>
+
+                            <option value="Pending"
+                                    selected="@(ViewBag.PaymentStatus?.ToString() == "Pending")">
+                                Pending
+                            </option>
+
+                            <option value="Paid"
+                                    selected="@(ViewBag.PaymentStatus?.ToString() == "Paid")">
+                                Paid
+                            </option>
+
+                            <option value="Failed"
+                                    selected="@(ViewBag.PaymentStatus?.ToString() == "Failed")">
+                                Failed
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                Search
+                            </button>
+
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+                                Clear
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ORDER TABLE -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-header d-flex justify-content-between">
+
+            <strong>Orders</strong>
+
+            <span class="text-muted">
+                Total Orders: @Model.Count()
+            </span>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered mb-0">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>Order #</th>
+
+                            <th>Date</th>
+
+                            <th>Subtotal</th>
+
+                            <th>Discount</th>
+
+                            <th>GST</th>
+
+                            <th>Grand Total</th>
+
+                            <th>Payment</th>
+
+                            <th>Order Status</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model.Any())
+                        {
+                            foreach (var order in Model)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            @order.OrderNumber
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @order.OrderDate.ToString("dd-MM-yyyy HH:mm")
+                                    </td>
+
+                                    <td>
+                                        ₹ @order.Subtotal.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        ₹ @order.DiscountAmount.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        ₹ @order.TaxAmount.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            ₹ @order.GrandTotal.ToString("0.00")
+                                        </strong>
+                                    </td>
+
+                                    <td>
+
+                                        @if (order.PaymentStatus == "Paid")
+                                        {
+                                            <span class="badge bg-success">
+                                                Paid
+                                            </span>
+                                        }
+                                        else if (order.PaymentStatus == "Failed")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Failed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                @order.PaymentStatus
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+                                        @order.OrderStatus
+                                    </td>
+
+                                    <td>
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@order.OrderId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="9"
+                                    class="text-center py-4 text-muted">
+
+                                    No orders found.
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,245 @@
+﻿@model POS.Models.Entities.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+
+    var items = ViewBag.Items
+        as IEnumerable<POS.Models.Entities.OrderItem>;
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2>Order Details</h2>
+
+            <p class="text-muted mb-0">
+                Order Number:
+                <strong>@Model.OrderNumber</strong>
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Orders
+        </a>
+
+    </div>
+
+
+    <!-- ORDER INFORMATION -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>Order Information</strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+                    <small class="text-muted">
+                        Order Number
+                    </small>
+
+                    <div>
+                        <strong>
+                            @Model.OrderNumber
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <small class="text-muted">
+                        Order Date
+                    </small>
+
+                    <div>
+                        @Model.OrderDate.ToString("dd-MM-yyyy HH:mm")
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <small class="text-muted">
+                        Payment Status
+                    </small>
+
+                    <div>
+
+                        @if (Model.PaymentStatus == "Paid")
+                        {
+                            <span class="badge bg-success">
+                                Paid
+                            </span>
+                        }
+                        else if (Model.PaymentStatus == "Failed")
+                        {
+                            <span class="badge bg-danger">
+                                Failed
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">
+                                @Model.PaymentStatus
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <small class="text-muted">
+                        Order Status
+                    </small>
+
+                    <div>
+                        <strong>
+                            @Model.OrderStatus
+                        </strong>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ITEMS -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>Order Items</strong>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered mb-0">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>Product</th>
+
+                            <th>SKU</th>
+
+                            <th>Quantity</th>
+
+                            <th>Unit Price</th>
+
+                            <th>Line Total</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (items != null && items.Any())
+                        {
+                            foreach (var item in items)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @item.ProductName
+                                    </td>
+
+                                    <td>
+                                        @item.SKU
+                                    </td>
+
+                                    <td>
+                                        @item.Quantity
+                                    </td>
+
+                                    <td>
+                                        ₹ @item.UnitPrice.ToString("0.00")
+                                    </td>
+
+                                    <td>
+                                        ₹ @item.LineTotal.ToString("0.00")
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOTALS -->
+
+    <div class="row justify-content-end">
+
+        <div class="col-md-5">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <strong>
+                            ₹ @Model.Subtotal.ToString("0.00")
+                        </strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount</span>
+                        <strong>
+                            ₹ @Model.DiscountAmount.ToString("0.00")
+                        </strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            GST (@Model.TaxPercentage%)
+                        </span>
+
+                        <strong>
+                            ₹ @Model.TaxAmount.ToString("0.00")
+                        </strong>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+
+                        <h5>
+                            Grand Total
+                        </h5>
+
+                        <h5>
+                            ₹ @Model.GrandTotal.ToString("0.00")
+                        </h5>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
