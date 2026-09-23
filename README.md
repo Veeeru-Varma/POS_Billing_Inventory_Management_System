@@ -16,6 +16,7 @@ The application covers product management, billing, inventory, payment processin
 - Inventory deduction after successful payment
 - Daily sales report
 - CSV and PDF export
+- Payment API integrated with the POS web billing flow
 - Background service for low-stock CSV reporting
 
 ## Technology Stack
@@ -40,7 +41,8 @@ The application covers product management, billing, inventory, payment processin
 POSBillingSystem
 │
 ├── Database
-│   └── POSBillingDB.sql
+│   ├── POSBillingDB.sql
+│   └── ClearPOSBillingDB.sql
 │
 ├── POS.Web
 ├── POS.API
@@ -87,6 +89,8 @@ Database/POSBillingDB.sql
 ```
 
 The script creates the database, tables, stored procedures, GST configuration and sample products.
+
+A separate cleanup script is available at `Database/ClearPOSBillingDB.sql`. It clears existing test data and adds the GST configuration again for fresh testing.
 
 Main tables:
 
@@ -212,8 +216,11 @@ The Billing screen supports:
 7. GST calculation
 8. Grand total calculation
 9. Order creation
+10. Payment processing
 
 After completing a sale, the order is created with payment status `Pending`.
+
+The POS web application is integrated with the Payment API, so successful and failed payments can be simulated directly from the Billing screen.
 
 ## Payment Webhook
 
@@ -265,6 +272,43 @@ Example failed payment request:
 For a failed payment, the payment is marked as failed and inventory is not reduced.
 
 Webhook requests are stored in the `WebhookLogs` table.
+
+## Payment Flow from Web UI
+
+The payment API is connected with the POS billing screen.
+
+```text
+Billing
+   ↓
+Complete Sale
+   ↓
+Order Created
+   ↓
+Payment Pending
+   ↓
+Successful / Failed Payment
+   ↓
+POS.API Payment Webhook
+   ↓
+Payment Processing
+   ↓
+SQL Server
+```
+
+Successful payment:
+
+```text
+Payment = Paid
+Order = Completed
+Inventory = Reduced
+```
+
+Failed payment:
+
+```text
+Payment = Failed
+Inventory = Unchanged
+```
 
 ## Orders
 
@@ -359,7 +403,9 @@ Create Order
       ↓
 Payment Pending
       ↓
-Payment Webhook
+Payment from Web UI
+      ↓
+POS.API Payment Webhook
       ↓
 Success / Failed
       ↓
@@ -369,7 +415,19 @@ Failed  → Inventory Unchanged
 Order History
       ↓
 Sales Reports
+      ↓
+CSV / PDF Export
 ```
+
+## Database Cleanup
+
+For fresh testing, run:
+
+```text
+Database/ClearPOSBillingDB.sql
+```
+
+The script clears existing Products, Orders, OrderItems, Payments, WebhookLogs and TaxSettings data, then adds the GST configuration again.
 
 ## GitHub Repository
 
